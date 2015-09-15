@@ -1,12 +1,16 @@
 #! /bin/sh
 #
 # Clean
-rm Bookmarks.add2bm.sh Bookmarks.bmdb Bookmarks.html
+rm Bookmarks.add2bm.sh Bookmarks.bmdb Bookmarks.html Bookmarks.tags
 #
 python py-chrome-bookmarks.py Bookmarks.chrome Bookmarks.html | \
     sed "s/' /'/" | sed "s/ '/'/g" | sed 's/^#/.\/bm -f .\/Bookmarks.bmdb /' > Bookmarks.add2bm.sh
 #
 sh ./Bookmarks.add2bm.sh
+#
+./bm -f Bookmarks.bmdb -t > Bookmarks.tags
+echo "search? .. en"
+grep '^en' Bookmarks.tags | awk '{print $1;}' | xargs ./bm -f Bookmarks.bmdb -L
 #
 exit
 #

@@ -10,6 +10,7 @@
 # license and other information.
 
 import json, sys, os, re
+import string
 
 script_version = "1.1"
 
@@ -50,15 +51,26 @@ def html_for_url_node(node):
 	if not re.match("javascript:", node['url']):
                 linkURL=sanitize(node['url'])
                 keysURL=linkURL
+                ktrspaces =                 '                            '
+                ktrtable = string.maketrans('!@#$%^&*()_+-=`~;:\'",<.>/?\\|',ktrspaces)
+                keysURL= str(keysURL).translate(ktrtable,'').lower()
+                keysURL = str(keysURL).translate(None,'!@#$%^&*()_+-=`~;:\'",<.>/?\\|').lower()
+                #
                 tags= sanitize(node['name'])
                 #tags= node['name'] Check for UTF-8 etc...
                 #print "TAGS: ",tags
                 #tags = tags.translate(None,'!@#$%^&*()_+-=`~;:\'",<.>/?\\|')
                 #tags.translate(None,'!@#$%^&*()_+-=`~;:\'",<.>/?\\|')
                 #trtable =                          '                              '
+                trspaces =                 '                            '
+                trtable = string.maketrans('!@#$%^&*()_+-=`~;:\'",<.>/?\\|',trspaces)
                 #tags = str(tags).translate(trtable,'!@#$%^&*()_+-=`~;:\'",<.>/?\\|')
-                tags = str(tags).translate(None,'!@#$%^&*()_+-=`~;:\'",<.>/?\\|')
-                print '# \'',sanitize(node['url']),'\'', tags
+                tags = str(tags).translate(trtable,'').lower()
+                tags = str(tags).translate(None,'!@#$%^&*()_+-=`~;:\'",<.>/?\\|').lower()
+                #
+                allTags = tags+" "+keysURL
+                print '# \'',sanitize(node['url']),'\'', allTags
+                #print '# \'',sanitize(node['url']),'\'', tags
 		return '<dt><a href="%s">%s</a>\n' % (sanitize(node['url']), sanitize(node['name']))
 	else:
 		return ''
