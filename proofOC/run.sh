@@ -10,7 +10,7 @@ sh ./Bookmarks.add2bm.sh
 #
 ./bm -f Bookmarks.bmdb -t > Bookmarks.tags
 echo "search? .. en"
-grep '^en' Bookmarks.tags | awk '{print $1;}' | xargs ./bm -f Bookmarks.bmdb -L
+grep '^en' Bookmarks.tags | awk '{print $1;}' | xargs ./bm -f Bookmarks.bmdb -v -L
 #
 exit
 #

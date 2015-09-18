@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# 3to2 #!/usr/bin/env python3
 #
 # Copyright 2014 Cédric Picard
 #
@@ -19,7 +18,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 # END_OF_LICENSE
 #
-u"""
+"""
 Simple command line browser independant bookmark utility.
 
 Usage: bm [options] [-r] URL TAG...
@@ -62,27 +61,24 @@ Options:
     -w, --web           Open the results in a web browser
     --version           Print current version number
 """
-from __future__ import with_statement
-from __future__ import absolute_import
-from io import open
-VERSION = u"1.6.1"
+VERSION = "1.6.1"
 
 import os
+import re
 from docopt              import docopt
 from msgpack             import dump, load
 from msgpack.exceptions  import UnpackValueError, ExtraData
-import re
 
 ## Atomic database mutations
 
 def add(database, url, tags):
-    u""" Add `tags' to `url' in `database' """
+    """ Add `tags' to `url' in `database' """
     database[url] = list(set(database.get(url, []))
                             .union(tags))
 
 
 def remove(database, url, tags):
-    u""" Removes `tags' from `url' in `database' """
+    """ Removes `tags' from `url' in `database' """
     data = set(database.get(url, [])).difference(tags)
 
     if data:
@@ -92,16 +88,14 @@ def remove(database, url, tags):
 
 
 def delete(database, url):
-    u""" Removes `url' from `database' """
+    """ Removes `url' from `database' """
     database.pop(url, None)
 
 
 ## Database listing and query functions
 
-def list_any(database, tags, **_3to2kwargs):
-    if 'verbose' in _3to2kwargs: verbose = _3to2kwargs['verbose']; del _3to2kwargs['verbose']
-    else: verbose = False
-    u"""
+def list_any(database, tags, *, verbose=False):
+    """
     Yields any url in `database' with one of `tags'
     If `verbose' is set yields tupples (url, tags)
     """
@@ -112,10 +106,9 @@ def list_any(database, tags, **_3to2kwargs):
             else:
                 yield url, database[url]
 
-def list_every(database, tags, **_3to2kwargs):
-    if 'verbose' in _3to2kwargs: verbose = _3to2kwargs['verbose']; del _3to2kwargs['verbose']
-    else: verbose = False
-    u"""
+
+def list_every(database, tags, *, verbose=False):
+    """
     Yields any url in `database' with each of `tags'
     If `verbose' is set yields tupples (url, tags)
     """
@@ -128,7 +121,7 @@ def list_every(database, tags, **_3to2kwargs):
 
 
 def list_every_tags(database):
-    u""" Returns the list of every tags present in `database' """
+    """ Returns the list of every tags present in `database' """
     from collections import Counter
 
     counter = Counter()
@@ -139,7 +132,7 @@ def list_every_tags(database):
 
 
 def search_tag(database, tre):
-    u"""
+    """
     Returns the list of any tags present in `database'
     matching the regular expression TRE.
     """
@@ -160,7 +153,7 @@ def search_tag(database, tre):
 ## Database file Input/Output
 
 def import_db(database, d_paths):
-    u""" Merges each database in `d_paths' into `database' """
+    """ Merges each database in `d_paths' into `database' """
     paths = expand_paths(d_paths)
 
     for path in paths:
@@ -170,16 +163,16 @@ def import_db(database, d_paths):
 
 
 def dump_db(database, d_file):
-    u""" Writes `database' into `d_file' """
+    """ Writes `database' into `d_file' """
     try:
-        dump(database, open(d_file, u'wb'))
+        dump(database, open(d_file, 'wb'))
 
     except FileNotFoundError:
-        print >>os.sys.stderr, u"File not found: " + d_file
+        print("File not found: " + d_file, file=os.sys.stderr)
 
 
 def expand_paths(paths):
-    u""" Yields the paths in `paths' expanded to absolute paths if possible """
+    """ Yields the paths in `paths' expanded to absolute paths if possible """
     for path in paths:
         if path is not None and os.path.exists(path):
             yield os.path.abspath(path)
@@ -190,9 +183,9 @@ def expand_paths(paths):
 
 # If this grows, we'll have to put it in another file
 def html_generator(tags, sites):
-    u""" Returns the html template of a page presenting tags and sites """
-    li_html  = u'<li><a href="{u}">{u}</a><p>{t}</p></li>'
-    template = u"""
+    """ Returns the html template of a page presenting tags and sites """
+    li_html  = '<li><a href="{u}">{u}</a><p>{t}</p></li>'
+    template = """
     <!DOCTYPE html>
     <html>
       <head>
@@ -210,32 +203,30 @@ def html_generator(tags, sites):
     </html>
     """
     template = template.format(
-        tags  = u', '.join(tags),
-        sites = (u'\n'+u' '*10).join(li_html.format(u = x.split()[0],
-                                                  t = u','.join(x.split()[2:]))
+        tags  = ', '.join(tags),
+        sites = ('\n'+' '*10).join(li_html.format(u = x.split()[0],
+                                                  t = ','.join(x.split()[2:]))
                                    for x in sites))
     return template
 
 
 def web_open(browser, html_src):
-    u""" Creates and opens a page with `html_src' into the `browser' """
+    """ Creates and opens a page with `html_src' into the `browser' """
     from subprocess import Popen
     from time import sleep
 
-    path = u"/tmp/bm-tmp.html"
+    path = "/tmp/bm-tmp.html"
 
-    with open(path, u"w") as f:
+    with open(path, "w") as f:
         f.write(html_src)
 
-    Popen([browser, u"file://" + path])
+    Popen([browser, "file://" + path])
 
 ## Main routines
 
-def open_db(path, **_3to2kwargs):
-    if 'encoding' in _3to2kwargs: encoding = _3to2kwargs['encoding']; del _3to2kwargs['encoding']
-    else: encoding = u"utf-8"
-    u""" Opens a database at `path' and return its data """
-    if u"://" in path:
+def open_db(path, *, encoding="utf-8"):
+    """ Opens a database at `path' and return its data """
+    if "://" in path:
         import tempfile
         import requests
         from   requests.exceptions import ConnectionError
@@ -243,37 +234,37 @@ def open_db(path, **_3to2kwargs):
         try:
             request  = requests.get(path)
             database = request.content
-            encoding = request.encoding or u"utf-8"
+            encoding = request.encoding or "utf-8"
 
             tmp_file = True
             path = tempfile.mktemp()
 
-            open(path, u"wb").write(database)
+            open(path, "wb").write(database)
 
         except ConnectionError:
-            print >>os.sys.stderr, u"Connection impossible: " + path
+            print("Connection impossible: " + path, file=os.sys.stderr)
             data = []
             return data
 
     else:
         tmp_file = False
-        encoding = u"utf-8"
+        encoding = "utf-8"
 
 
     try:
-        database = open(path, u"rb")
+        database = open(path, "rb")
         data = load(database, encoding=encoding)
 
     except FileNotFoundError:
-        print >>os.sys.stderr, u"File not found: " + path
+        print("File not found: " + path, file=os.sys.stderr)
         data = []
 
     except ExtraData:
-        print >>os.sys.stderr, u"Page not found: " + request.url
+        print("Page not found: " + request.url, file=os.sys.stderr)
         data = []
 
     except ConnectionError:
-        print >>os.sys.stderr, u"Connection impossible: " + request.url
+        print("Connection impossible: " + request.url, file=os.sys.stderr)
         data = []
 
     finally:
@@ -284,7 +275,7 @@ def open_db(path, **_3to2kwargs):
 
 
 def manage_urls(urls, tags, d_file, database, args):
-    u"""
+    """
     Manages action-oriented arguments
         urls:     user provived urls
         tags:     user provived tags
@@ -292,48 +283,48 @@ def manage_urls(urls, tags, d_file, database, args):
         database: reference to the current database
         args:     command-line arguments dictionnary
     """
-    verbose = args[u"--verbose"]
+    verbose = args["--verbose"]
 
-    if args[u"--delete"]:
+    if args["--delete"]:
         for url in urls:
             delete(database, url)
         dump_db(database, d_file)
 
-    elif args[u"--list-any"] or args[u"--list-every"]:
-        if args[u"--list-any"]:
+    elif args["--list-any"] or args["--list-every"]:
+        if args["--list-any"]:
             sites = sorted(list_any(database, tags, verbose=verbose))
         else:
             sites = sorted(list_every(database, tags, verbose=verbose))
 
         if verbose:
-            sites = [ x[0] + u' : ' + u' '.join(x[1]) for x in sites ]
+            sites = [ x[0] + ' : ' + ' '.join(x[1]) for x in sites ]
 
-        if args[u"--web"]:
-            web_open(os.environ[u"BROWSER"], html_generator(tags, sites))
+        if args["--web"]:
+            web_open(os.environ["BROWSER"], html_generator(tags, sites))
         else:
             for each in sites:
-                print each
-                
-    elif args[u"--remove"]:
+                print(each)
+
+    elif args["--remove"]:
         for url in urls:
             remove(database, url, tags)
         dump_db(database, d_file)
 
-    elif args[u"--searchtag"]:
-        tre = args[u"--searchtag"]
-        for num, tag in sorted(search_tag(database, tre, verbose=verbose)):
-            print u"%s %s" % (tag, num)
+    elif args["--searchtag"]:
+        tre = args["--searchtag"]
+        for num, tag in sorted(search_tag(database, tre)):
+            print("%s %s" % (tag, num))
 
-    elif args[u"--tags"]:
+    elif args["--tags"]:
         for num, tag in sorted(list_every_tags(database)):
-            print u"%s %s" % (tag, num)
+            print("%s %s" % (tag, num))
 
-    elif args[u"--import"]:
+    elif args["--import"]:
         for url in urls:
             import_db(database, tags)
         dump_db(database, d_file)
 
-    elif args[u"TAG"]:
+    elif args["TAG"]:
         for url in urls:
             add(database, url, tags)
         dump_db(database, d_file)
@@ -341,55 +332,55 @@ def manage_urls(urls, tags, d_file, database, args):
     else:
         for url in urls:
             for tag in database[url]:
-                print tag
+                print(tag)
 
 
 def main():
-    u""" Reception and preprocessing of command-line arguments """
+    """ Reception and preprocessing of command-line arguments """
     args = docopt(__doc__, version=VERSION)
 
-    tags = args[u"TAG"] or args[u"SOURCE"]
+    tags = args["TAG"] or args["SOURCE"]
 
-    if args[u"URL"] == u'-':
+    if args["URL"] == '-':
         urls = os.sys.stdin.read().splitlines()
     else:
         # Only one url...but we still need an iterable
-        urls = [ args[u"URL"] ]
+        urls = [ args["URL"] ]
 
-    d_file = args[u"--file"] or os.environ[u"HOME"] + u"/.bookmarks"
+    d_file = args["--file"] or os.environ["HOME"] + "/.bookmarks"
 
     try:
-        if not os.path.exists(d_file) and u"://" not in d_file:
-            print >>os.sys.stderr, u'The file "' + d_file + u'" does not exist: creating it.'
+        if not os.path.exists(d_file) and "://" not in d_file:
+            print('The file "' + d_file + '" does not exist: creating it.',
+                    file=os.sys.stderr)
             dump_db({}, d_file)
 
         database = open_db(d_file)
 
-        if args[u"--clean"]:
+        if args["--clean"]:
             for u,t in database.items():
                 database[u] = list(set(t))
 
     except UnpackValueError:
         database = {}
 
-    except PermissionError, e:
+    except PermissionError as e:
         os.sys.exit(e)
 
 
-    if not args[u"--no-path-subs"]:
+    if not args["--no-path-subs"]:
         urls = expand_paths(urls)
 
     try:
         manage_urls(urls, tags, d_file, database, args)
-    except KeyError, e:
-        print >>os.sys.stderr, u"No such bookmark:", e
+    except KeyError as e:
+        print("No such bookmark:", e, file=os.sys.stderr)
         os.sys.exit(1)
 
 
-if __name__ == u"__main__":
+if __name__ == "__main__":
     # This is a little rude but, hey, better late than never!
     try:
         main()
-    except IOError, e:
-# 3to2 #    except BrokenPipeError, e:
+    except BrokenPipeError as e:
         pass
